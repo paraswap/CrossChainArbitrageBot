@@ -1,0 +1,9 @@
+{
+  "name": "para-arb",
+  "version": "1.0.0",
+  "description": "CrossChain Arbitrage Bot Using Paraswap",
+  "main": "index.js",
+  "author": "Shresth Agrawal <shresthagrawal.31@gmail.com>",
+  "license": "MIT",
+  "private": false
+}
