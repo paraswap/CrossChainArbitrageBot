@@ -11,4 +11,4 @@ Steps to run the bot:
 Next Improvements
 -----------------
 * Complete the Balance logic using the matic bridge. [Matic Docs](https://docs.matic.network/docs/develop/ethereum-matic/getting-started/)
-* 
+* Add more complex arbitrage logic
