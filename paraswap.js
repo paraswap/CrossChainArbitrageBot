@@ -1,4 +1,5 @@
 const axios = require('axios');
+const BigNumber = require('bignumber.js');
 
 const ParswapURL = 'https://apiv4.paraswap.io/v2';
 
@@ -27,7 +28,7 @@ class Paraswap {
       };
     } catch (e) {
       throw new Error(
-        `Paraswap unable to fetch price ${from} ${to} ${network} ${e.message}`,
+        `Paraswap unable to fetch price ${from.address} ${to.address} ${network} ${e.message}`,
       );
     }
   }
@@ -42,7 +43,7 @@ class Paraswap {
     userAddress,
   ) {
     try {
-      const requestURL = `${this.apiURL}/transactions/${network}?skipChecks=true`;
+      const requestURL = `${this.apiURL}/transactions/${network}`;
       const requestData = {
         priceRoute: pricePayload,
         srcToken: from.address,
@@ -56,10 +57,16 @@ class Paraswap {
       };
 
       const { data } = await axios.post(requestURL, requestData);
-      return data;
+      return {
+        from: data.from,
+        to: data.to,
+        data: data.data,
+        gasLimit: '0x' + new BigNumber(data.gas).toString(16),
+        value: '0x' + new BigNumber(data.value).toString(16)
+      };
     } catch (e) {
       throw new Error(
-        `Paraswap unable to buildTransaction ${from} ${to} ${network} ${e.message}`,
+        `Paraswap unable to buildTransaction ${from.address} ${to.address} ${network} ${e.message}`,
       );
     }
   }

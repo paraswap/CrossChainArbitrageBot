@@ -58,8 +58,9 @@ class CrossChainArbinator {
     return await this.alive();
   }
 
-  executeTx(txRequest, network) {
-    return this.wallets[network].sendTransaction(txRequest);
+  async executeTx(txRequest, network) {
+    const tx = await this.wallets[network].sendTransaction(txRequest);
+    return await tx.wait(); 
   }
 
   async rebalance() {
@@ -146,13 +147,12 @@ class CrossChainArbinator {
         ),
       ]);
       console.log('Executing Arbitrage');
-      // TODO: handle failed tx
       const txs = await Promise.all([
         this.executeTx(txRequestMainnet, MAINNET_NETWORK_ID),
         this.executeTx(txRequestPolygon, POLYGON_NETWORK_ID),
       ]);
-
       console.log(txs);
+
       await this.rebalance();
     } else {
       // Take Rest
