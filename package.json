@@ -21,5 +21,8 @@
     "hooks": {
       "pre-commit": "pretty-quick --staged"
     }
+  },
+  "scripts": {
+    "start": "node ./index"
   }
 }
