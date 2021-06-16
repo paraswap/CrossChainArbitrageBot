@@ -20,6 +20,9 @@ const privatekey = {
   [POLYGON_NETWORK_ID]: process.env.PK_POLYGON,
 };
 
+// Any arbitary token can be used.
+// We use ETH <> MATIC as they are native tokens
+// and don't require any approval on their chains
 const Tokens = {
   [MAINNET_NETWORK_ID]: {
     ETH: {
@@ -78,9 +81,10 @@ class CrossChainArbinator {
   // Bot logic goes here
   async run() {
     const srcAmountFirst = this.normalise(
-      '0.1',
+      '0.05',
       Tokens[MAINNET_NETWORK_ID]['ETH'],
     );
+    // Get the best price for ETH -> MATIC swap in MAINNET
     const priceFirst = await this.pricing.getPrice(
       Tokens[MAINNET_NETWORK_ID]['ETH'],
       Tokens[MAINNET_NETWORK_ID]['MATIC'],
@@ -98,10 +102,12 @@ class CrossChainArbinator {
     console.log(
       `FirstSwap ETH -> MATIC MAINNET srcAmount: ${dSrcAmountFirst} destAmount: ${dDestAmountFirst}`,
     );
+    // Get the destAmount with slippage to get the srcAmount of the next swap
     const destAmountFirstSlippage = new BigNumber(priceFirst.price).times(
       1 - slippage,
     );
 
+    // Get the best price for MATIC -> ETH swap in POLYGON
     const priceSecond = await this.pricing.getPrice(
       Tokens[POLYGON_NETWORK_ID]['MATIC'],
       Tokens[POLYGON_NETWORK_ID]['ETH'],
@@ -119,13 +125,16 @@ class CrossChainArbinator {
     console.log(
       `SecondSwap MATIC -> ETH MAINNET srcAmount: ${dSrcAmountSecond} destAmount: ${dDestAmountSecond}`,
     );
+    // Get the destAmount with slippage to check if have an arbitrage opportunity
     const destAmountSecondSlippage = new BigNumber(priceSecond.price).times(
       1 - slippage,
     );
 
+    // If the amount recieved in the second swap - slippage is greater than the src amount of the first swap 
     const isArb = srcAmountFirst.lte(destAmountSecondSlippage);
     console.log(`Is Arbitrage: ${isArb}`);
     if (isArb) {
+      // Build transaction parallely for both the swaps
       const [txRequestMainnet, txRequestPolygon] = await Promise.all([
         this.pricing.buildTransaction(
           priceFirst.payload,
@@ -147,15 +156,18 @@ class CrossChainArbinator {
         ),
       ]);
       console.log('Executing Arbitrage');
+      
+      // Execute the transaction 
       const txs = await Promise.all([
         this.executeTx(txRequestMainnet, MAINNET_NETWORK_ID),
         this.executeTx(txRequestPolygon, POLYGON_NETWORK_ID),
       ]);
       console.log(txs);
-
+      
+      // Rebalance the portfolio if needed
       await this.rebalance();
     } else {
-      // Take Rest
+      // If there was no arbitrage take rest before trying
       await new Promise(resolve => {
         setTimeout(() => resolve(), REST_TIME);
       });
@@ -185,7 +197,7 @@ async function main() {
 
   const paraswap = new Paraswap();
   const bot = new CrossChainArbinator(paraswap, wallets);
-
+  // Let the bot make some money ;) 
   await bot.alive();
 }
 
