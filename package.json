@@ -5,5 +5,21 @@
   "main": "index.js",
   "author": "Shresth Agrawal <shresthagrawal.31@gmail.com>",
   "license": "MIT",
-  "private": false
+  "private": false,
+  "dependencies": {
+    "axios": "0.21.1",
+    "bignumber.js": "9.0.1",
+    "dotenv": "10.0.0",
+    "ethers": "5.3.1"
+  },
+  "devDependencies": {
+    "husky": "6.0.0",
+    "prettier": "2.3.1",
+    "pretty-quick": "3.1.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  }
 }
