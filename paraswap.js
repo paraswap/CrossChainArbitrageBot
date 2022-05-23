@@ -1,7 +1,7 @@
 const axios = require('axios');
 const BigNumber = require('bignumber.js');
 
-const ParswapURL = 'https://apiv4.paraswap.io/v2';
+const ParswapURL = 'https://apiv5.paraswap.io';
 
 // https://developers.paraswap.network/
 class Paraswap {
@@ -10,16 +10,16 @@ class Paraswap {
     this.referrer = 'arb-bot';
   }
 
-  async getPrice(from, to, srcAmount, network) {
+  async getPrice(srcToken, destToken, srcAmount, network) {
     // TODO: Add error handling
     try {
       const requestURL =
-        `${this.apiURL}/prices/?from=${from.address}&to=${to.address}` +
-        `&amount=${srcAmount}&fromDecimals=${from.decimals}&toDecimals` +
-        `=${to.decimals}&side=SELL&network=${network}`;
+        `${this.apiURL}/prices/?srcToken=${srcToken.address}&destToken=${destToken.address}` +
+        `&amount=${srcAmount}&srcDecimals=${srcToken.decimals}&destDecimals` +
+        `=${destToken.decimals}&side=SELL&network=${network}`;
       const { data } = await axios.get(requestURL, {
         headers: {
-          'X-Partner': this.referrer,
+          'partner': this.referrer,
         },
       });
       return {
@@ -28,15 +28,15 @@ class Paraswap {
       };
     } catch (e) {
       throw new Error(
-        `Paraswap unable to fetch price ${from.address} ${to.address} ${network} ${e.message}`,
+        `Paraswap unable to fetch price ${srcToken.address} ${destToken.address} ${network} ${e.message}`,
       );
     }
   }
 
   async buildTransaction(
     pricePayload,
-    from,
-    to,
+    srcToken,
+    destToken,
     srcAmount,
     minDestAmount,
     network,
@@ -46,27 +46,27 @@ class Paraswap {
       const requestURL = `${this.apiURL}/transactions/${network}`;
       const requestData = {
         priceRoute: pricePayload,
-        srcToken: from.address,
-        destToken: to.address,
+        srcToken: srcToken.address,
+        destToken: destToken.address,
         srcAmount: srcAmount,
         destAmount: minDestAmount,
         userAddress: userAddress,
         referrer: this.referrer,
-        srcDecimals: from.decimals,
-        destDecimals: to.decimals,
+        srcDecimals: srcToken.decimals,
+        destDecimals: destToken.decimals,
       };
 
       const { data } = await axios.post(requestURL, requestData);
       return {
-        from: data.from,
-        to: data.to,
+        srcToken: data.srcToken,
+        destToken: data.destToken,
         data: data.data,
         gasLimit: '0x' + new BigNumber(data.gas).toString(16),
         value: '0x' + new BigNumber(data.value).toString(16)
       };
     } catch (e) {
       throw new Error(
-        `Paraswap unable to buildTransaction ${from.address} ${to.address} ${network} ${e.message}`,
+        `Paraswap unable to buildTransaction ${srcToken.address} ${destToken.address} ${network} ${e.message}`,
       );
     }
   }
