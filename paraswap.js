@@ -1,8 +1,8 @@
 const axios = require('axios');
 const BigNumber = require('bignumber.js');
 
-const ParswapURL = 'https://apiv4.paraswap.io/v2';
-
+const ParswapURL = 'https://apiv5.paraswap.io';
+let requestURL;
 // https://developers.paraswap.network/
 class Paraswap {
   constructor(apiURL = ParswapURL) {
@@ -13,14 +13,15 @@ class Paraswap {
   async getPrice(from, to, srcAmount, network) {
     // TODO: Add error handling
     try {
-      const requestURL =
-        `${this.apiURL}/prices/?from=${from.address}&to=${to.address}` +
-        `&amount=${srcAmount}&fromDecimals=${from.decimals}&toDecimals` +
+      requestURL =
+        `${this.apiURL}/prices/?srcToken=${from.address}&destToken=${to.address}` +
+        `&amount=${srcAmount}&srcDecimals=${from.decimals}&destDecimals` +
         `=${to.decimals}&side=SELL&network=${network}`;
       const { data } = await axios.get(requestURL, {
         headers: {
           'X-Partner': this.referrer,
         },
+        
       });
       return {
         price: data.priceRoute.destAmount,
@@ -28,7 +29,7 @@ class Paraswap {
       };
     } catch (e) {
       throw new Error(
-        `Paraswap unable to fetch price ${from.address} ${to.address} ${network} ${e.message}`,
+        `Paraswap unable to fetch price ${from.address} ${to.address} ${network} ${e.message} ${requestURL}`,
       );
     }
   }
