@@ -81,7 +81,7 @@ class CrossChainArbinator {
   // Bot logic goes here
   async run() {
     const srcAmountFirst = this.normalise(
-      '0.035',
+      '100.0',
       Tokens[MAINNET_NETWORK_ID]['ETH'],
     );
     // Get the best price for ETH -> MATIC swap in MAINNET
